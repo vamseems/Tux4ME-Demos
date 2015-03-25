@@ -1,0 +1,137 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+	<meta charset="UTF-8" />
+    <title>Speed Game Demo</title>
+	<script type="text/javascript" src="js/phaser.min.js"></script>
+    <style type="text/css">
+        body {
+            margin: 2%;
+        }
+    </style>
+</head>
+<body>
+    <h2>Speed Game Demo</h2>
+    <p>
+        Left key should be pressed when both the cards match. <br>
+        Right key should be pressed when both the cards differ.
+    </p>
+
+<script type="text/javascript">
+    
+    /*
+        Yellow Rectangle ==> 0
+        Green Rectangle ==> 1
+        Black Triangle ==> 2
+        Red Circle ==> 3
+
+        Left key should be pressed when both the cards match.
+        Right key should be pressed when both the cards differ.
+    */
+
+
+    var game = new Phaser.Game(500, 400, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+    var previous_card = -1;
+    var present_card;
+    var score = 0;
+    var count = 100;
+    var scoreText, thisRound;
+    var card_shown;
+
+
+    function preload() {
+
+        //Load all the necessary resources.
+        game.load.image('background', 'assets/sky.png');
+        game.load.image('card_front', 'assets/card_front.jpg');
+        game.load.image('card_back', 'assets/card_back.png');
+        game.load.image('0', 'assets/yellow_rect.png');
+        game.load.image('1', 'assets/green_rect.png');
+        game.load.image('2', 'assets/black_triangle.png');
+        game.load.image('3', 'assets/red_circle.png');
+
+    }
+
+
+    function create() {
+
+        //  A simple background for our game
+        game.add.sprite(0, 0, 'background');
+
+        //Shows the back of the card
+        game.add.sprite(game.world.width/2 - 89, game.world.height/2 - 60, 'card_back');
+        
+        //Shows the front of the card
+        game.add.sprite(game.world.width/2 + 11, game.world.height/2 - 60, 'card_front');
+
+        scoreText = game.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
+        thisRound = game.add.text(16, game.world.height - 32, 'This round: 0', { fontSize: '32px', fill: '#000' });
+
+        //Initialize the shown card
+        present_card = parseInt((Math.random() * 100) % 4);
+
+        //Show the card
+        card_shown = game.add.sprite(game.world.width/2 + 25, game.world.height/2 - 35, String(present_card));
+
+        //Show first card and after one seconds move to the second card
+        game.time.events.add(1000, function (){
+            previous_card = present_card;
+            present_card = parseInt((Math.random() * 100) % 4);
+            card_shown.kill();
+            card_shown = game.add.sprite(game.world.width/2 + 25, game.world.height/2 - 35, String(present_card));
+        }, this);
+
+
+        //  Our controls.
+        game.input.keyboard.addCallbacks(null, null, onKeyUp);
+        
+    }
+
+    function onKeyUp(event) {
+            switch (event.keyCode) {
+                    //Check for the release of the left arrow key
+                    case 37:
+                        if (present_card == previous_card)
+                            score = score + count;
+
+                        //Get the next card to be displayed
+                        getNextCard();
+                        count = 100;
+                        break;
+                    //Check for the release of the right arrow key
+                    case 39:
+                        if (present_card != previous_card)
+                            score = score + count;
+
+                        //Get the next card to be displayed
+                        getNextCard();
+                        count = 100;
+                        break;
+            }
+    }
+
+    function getNextCard() {
+        previous_card = present_card;
+        present_card = parseInt((Math.random() * 100) % 4);
+        card_shown.kill();
+        card_shown = game.add.sprite(game.world.width/2 + 25, game.world.height/2 - 35, String(present_card));
+    }
+
+    function update() {
+        count = count - 1;
+        if (count < 0)
+            count = 0;
+
+        //Updates the score of the game.
+        updateScore();
+    }
+
+    function updateScore () {
+       scoreText.text = 'Score: ' + String(score);
+       thisRound.text = 'This round: ' + String(count);
+    }
+
+</script>
+
+</body>
+</html>
