@@ -1,0 +1,194 @@
+<!doctype html> 
+<html lang="en"> 
+    <head> 
+    	<meta charset="UTF-8" />
+        <title>Reasoning Game Demo</title>
+    	<script type="text/javascript" src="js/phaser.min.js"></script>
+        <style type="text/css">
+            body {
+                margin: 2%;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>Reasoning Game Demo</h2>
+        <p>
+            Click on the block at the bottom that is the heaviest.
+        </p>
+
+    <script type="text/javascript">
+        
+        /*
+            Cube ==> 0
+            Cuboid ==> 1
+            Prism ==> 2
+            Pyramid ==> 3  
+            Sphere ==> 4
+
+            Click on the block at the bottom that is the heaviest.
+        */
+
+
+        var game = new Phaser.Game(600, 500, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+        var blocks = [];
+        var sprite_blocks = [];
+        var block_weights = [];
+        var score = 0;
+        var count = 100;
+        var scoreText;
+        var waiting_for_answer = 0;
+        var seesaw, dock, answer_block, dock_blocks = [];
+
+
+        function preload() {
+
+            //Load all the necessary resources.
+            game.load.image('background', 'assets/reasoning/game_bg.jpg');
+            game.load.image('dock', 'assets/reasoning/bottom_dock.png');
+            game.load.image('seesaw_equal', 'assets/reasoning/seesaw_equal.png');
+            game.load.image('seesaw_right_down', 'assets/reasoning/seesaw_right_down.png');
+            game.load.image('seesaw_left_down', 'assets/reasoning/seesaw_left_down.png');
+            game.load.image('0', 'assets/reasoning/cube.png');
+            game.load.image('1', 'assets/reasoning/cuboid.png');
+            game.load.image('2', 'assets/reasoning/prism.png');
+            game.load.image('3', 'assets/reasoning/pyramid1.png');
+            
+        }
+
+
+        function create() {
+
+            //  A simple background for our game
+            game.add.sprite(0, 0, 'background');
+
+            //Generates the dock at the bottom of the game window
+            dock = game.add.sprite(10, game.world.height - 120, 'dock');
+            
+            //Initialisation of the seesaw
+            seesaw = game.add.sprite(game.world.width/2 - 150, game.world.height/2 - 100, 'seesaw_equal');
+
+            //Show the score of the game
+            scoreText = game.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
+
+        }
+
+        function update() {
+            if (waiting_for_answer == 0)
+            {
+                //Random blocks are chosen
+                blocks[0] = String(parseInt((Math.random() * 100) % 4));
+                blocks[1] = String(parseInt((Math.random() * 100) % 4));
+
+                //If same block is chosen, then one of them is changed, otherwise choosing the right answer is not possible.
+                while(blocks[1] == blocks[0])
+                    blocks[1] = String(parseInt((Math.random() * 100) % 4));
+
+                //Weights of the blocks are randomized
+                block_weights[0] = parseInt(Math.random() * 100);
+                block_weights[1] = parseInt(Math.random() * 100);
+
+                //Wait for 1 second before going on to display the next set of blocks
+                game.time.events.add(1000, function (){
+                    if (block_weights[0] > block_weights[1])
+                    {
+                        seesaw.kill(); // Reme the initial seesaw
+
+                        //Replace with seesaw titled towards the correct side
+                        seesaw = game.add.sprite(game.world.width/2 - 150, game.world.height/2 - 100, 'seesaw_left_down');
+
+                        //The weights are drawn on both the sides
+                        sprite_blocks[0] = game.add.sprite(seesaw.x, seesaw.y + 90, String(blocks[0]));
+                        sprite_blocks[1] = game.add.sprite(seesaw.x + 150, seesaw.y, String(blocks[1]));
+                        
+                        // Answer block is stored
+                        answer_block = sprite_blocks[0];
+                    }
+                    else if (block_weights[0] < block_weights[1])
+                    {
+                        seesaw.kill();  // Remove the initial seesaw
+
+                        //Replace with seesaw titled towards the correct side
+                        seesaw = game.add.sprite(game.world.width/2 - 150, game.world.height/2 - 100, 'seesaw_right_down');
+
+                        //The weights are drawn on both the sides
+                        sprite_blocks[0] = game.add.sprite(seesaw.x + 20, seesaw.y - 20, String(blocks[0]));
+                        sprite_blocks[1] = game.add.sprite(seesaw.x + 180, seesaw.y + 70, String(blocks[1]));
+
+                        // Answer block is stored
+                        answer_block = sprite_blocks[1];
+                    }
+
+                    //Sprites are added in the dock for selection of right answer
+                    if (parseInt(Math.random * 10) % 2 == 0) 
+                    {
+                        dock_blocks[0] = game.add.sprite(dock.x + 200, dock.y + 20, String(blocks[0]));
+                        dock_blocks[1] = game.add.sprite(dock.x + 300, dock.y + 20, String(blocks[1]));
+                        if (answer_block == sprite_blocks[0])
+                            answer_block = dock_blocks[0];
+                        else
+                            answer_block = dock_blocks[1];
+                    }
+                    else
+                    {
+                        dock_blocks[0] = game.add.sprite(dock.x + 200, dock.y + 20, String(blocks[1]));
+                        dock_blocks[1] = game.add.sprite(dock.x + 300, dock.y + 20, String(blocks[0]));
+                        if (answer_block == sprite_blocks[0])
+                            answer_block = dock_blocks[1];
+                        else
+                            answer_block = dock_blocks[0];
+                    }
+                    
+                    //Scale the sprites to their appropriate size
+                    sprite_blocks[0].scale.setTo(0.4, 0.4);
+                    sprite_blocks[1].scale.setTo(0.4, 0.4);
+                    dock_blocks[0].scale.setTo(0.5, 0.5);
+                    dock_blocks[1].scale.setTo(0.5, 0.5);
+                }, this);
+
+                //Flag is set to start waiting for the user to enter the answer.
+                waiting_for_answer = 1;
+            }
+
+            //Check for mouse click
+            if (waiting_for_answer == 1)
+            {
+
+                if (game.input.mousePointer.isDown)
+                {
+                    //If mouse is overlapping the correct answer block
+                    if ((game.input.x >= answer_block.x && game.input.x <= (answer_block.x + parseInt(answer_block.width))) && (game.input.y >= answer_block.y && game.input.y <= (answer_block.y + parseInt(answer_block.height))))
+                    {
+                        score = score + 20;
+                    }
+
+                    //Remove the blocks from the present round after the answer is given.
+                    sprite_blocks[0].kill();
+                    sprite_blocks[1].kill();
+                    dock_blocks[0].kill();
+                    dock_blocks[1].kill();
+
+                    //The answer is provided
+                    waiting_for_answer = 0;
+                }
+                else
+                {
+                    //Do nothing for now.
+                }
+            }
+
+            //Score update in the game window
+            updateScore();
+        }
+
+        function updateScore () {
+            //Updates the score of the game.
+            scoreText.text = 'Score: ' + String(score);
+        }
+
+    </script>
+    <p>
+        This is a demo and several more levels, animations and changes will be added in the final product.
+    </p>
+
+    </body>
+</html>
