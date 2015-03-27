@@ -34,7 +34,6 @@
         var sprite_blocks = [];
         var block_weights = [];
         var score = 0;
-        var count = 100;
         var scoreText;
         var waiting_for_answer = 0;
         var seesaw, dock, answer_block, dock_blocks = [];
@@ -150,11 +149,13 @@
             }
 
             //Check for mouse click
-            if (waiting_for_answer == 1)
-            {
-
-                if (game.input.mousePointer.isDown)
+            this.input.mouse.mouseUpCallback = function () {
+                if (waiting_for_answer == 1)
                 {
+
+                    //The answer is provided
+                    waiting_for_answer = 0;
+
                     //If mouse is overlapping the correct answer block
                     if ((game.input.x >= answer_block.x && game.input.x <= (answer_block.x + parseInt(answer_block.width))) && (game.input.y >= answer_block.y && game.input.y <= (answer_block.y + parseInt(answer_block.height))))
                     {
@@ -166,13 +167,6 @@
                     sprite_blocks[1].kill();
                     dock_blocks[0].kill();
                     dock_blocks[1].kill();
-
-                    //The answer is provided
-                    waiting_for_answer = 0;
-                }
-                else
-                {
-                    //Do nothing for now.
                 }
             }
 
