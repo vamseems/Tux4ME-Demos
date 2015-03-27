@@ -36,7 +36,7 @@
         var score = 0;
         var scoreText;
         var waiting_for_answer = 0;
-        var seesaw, dock, answer_block, dock_blocks = [];
+        var seesaw, dock, answer_block, dock_blocks = [], highlight_dock = [];
 
 
         function preload() {
@@ -51,7 +51,8 @@
             game.load.image('1', 'assets/reasoning/cuboid.png');
             game.load.image('2', 'assets/reasoning/prism.png');
             game.load.image('3', 'assets/reasoning/pyramid1.png');
-            
+            game.load.image('highlight', 'assets/reasoning/highlight.png');
+
         }
 
 
@@ -65,6 +66,16 @@
             
             //Initialisation of the seesaw
             seesaw = game.add.sprite(game.world.width/2 - 150, game.world.height/2 - 100, 'seesaw_equal');
+            
+            //Highlight the block in the dock that the mouse is over
+            highlight_dock[0] = game.add.sprite(dock.x + 190, dock.y + 10, 'highlight');
+            highlight_dock[1] = game.add.sprite(dock.x + 290, dock.y + 10, 'highlight');
+
+            highlight_dock[0].scale.setTo(0.7,0.7);
+            highlight_dock[1].scale.setTo(0.7,0.7);
+
+            highlight_dock[0].visible = false;
+            highlight_dock[1].visible = false;
 
             //Show the score of the game
             scoreText = game.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
@@ -152,7 +163,6 @@
             this.input.mouse.mouseUpCallback = function () {
                 if (waiting_for_answer == 1)
                 {
-
                     //The answer is provided
                     waiting_for_answer = 0;
 
@@ -168,6 +178,22 @@
                     dock_blocks[0].kill();
                     dock_blocks[1].kill();
                 }
+            }
+
+            //Highlight the block in the dock on which the mouse cursor is
+            if (waiting_for_answer == 1 && (typeof dock_blocks[0] !== 'undefined')) {
+                if ((game.input.x >= dock_blocks[0].x && game.input.x <= (dock_blocks[0].x + parseInt(dock_blocks[0].width))) && (game.input.y >= dock_blocks[0].y && game.input.y <= (dock_blocks[0].y + parseInt(dock_blocks[0].height))))
+                {
+                    highlight_dock[0].visible = true;
+                }
+                else
+                    highlight_dock[0].visible = false;
+                if ((game.input.x >= dock_blocks[1].x && game.input.x <= (dock_blocks[1].x + parseInt(dock_blocks[1].width))) && (game.input.y >= dock_blocks[0].y && game.input.y <= (dock_blocks[1].y + parseInt(dock_blocks[1].height))))
+                {
+                    highlight_dock[1].visible = true;
+                }
+                else
+                    highlight_dock[1].visible = false;
             }
 
             //Score update in the game window
